@@ -62,7 +62,7 @@ object Cache:
                     load.attempt.flatMap{
                       case Right(data) => put(key, data) *> d.complete(Right(data)) *> data.pure[F]
                       case Left(e) => ref.update(cache => cache - key) *> d.complete(Left(e)) *> e.raiseError[F, V]
-                    }
+                    }onCancel(ref.update(cache => cache - key) *> d.complete(Left(java.util.concurrent.CancellationException("загрузка отменена"))).void)
                   )
               }
             }.flatten

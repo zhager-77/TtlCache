@@ -11,6 +11,9 @@ object Main extends IOApp.Simple:
       val badLoad: IO[Int] =
         IO.sleep(1.second) *> IO.println("загружаю...") *> IO.raiseError[Int](new RuntimeException("упало"))
 
+      val slowLoad: IO[Int] =
+        IO.sleep(2.seconds) *> IO.println("загружаю...") *> IO.pure(470)
+
       for
         r1 <- IO.both(cache.getOrLoad("a", goodLoad).attempt, cache.getOrLoad("a", goodLoad).attempt)
         _ <- IO.println(s"проверка 1: $r1")
@@ -18,5 +21,7 @@ object Main extends IOApp.Simple:
         _ <- IO.println(s"проверка 2: $r2")
         r3 <- IO.both(cache.getOrLoad("b", goodLoad).attempt, cache.getOrLoad("b", goodLoad).attempt)
         _ <- IO.println(s"проверка 3: $r3")
+        r4 <- IO.both(cache.getOrLoad("c", slowLoad).timeout(500.millis).attempt, cache.getOrLoad("c", goodLoad).timeout(3.seconds).attempt)
+        _ <- IO.println(s"проверка 4: $r4")
       yield()
     }
